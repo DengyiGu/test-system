@@ -15,8 +15,8 @@ function stateOf(row) { const result = parse(row.result_json, {}); return { answ
 async function session(request, env, url) {
   const token = url.searchParams.get('token');
   const link = await rowForToken(env, token);
-  if (!link) return json({ valid: false, error: '该专属链接不存在或已过期。' }, 404);
-  if (await deleteIfStale(env, link)) return json({ valid: false, error: '该专属链接的五天使用期已结束。' }, 410);
+  if (!link) return json({ valid: false, error: 'This unique link does not exist or has expired.' }, 404);
+  if (await deleteIfStale(env, link)) return json({ valid: false, error: 'The five-day access period for this link has ended.' }, 410);
   if (link.status === 'available') {
     await env.DB.prepare("UPDATE issued_links SET status = 'claimed', first_opened_at = CURRENT_TIMESTAMP, expires_at = datetime('now', '+5 days') WHERE id = ? AND status = 'available'").bind(link.id).run();
   }
@@ -24,9 +24,9 @@ async function session(request, env, url) {
 }
 async function save(request, env) {
   const data = await body(request);
-  if (!data || !validAnswers(data.state?.answers)) return json({ error: '答题数据不正确。' }, 400);
+  if (!data || !validAnswers(data.state?.answers)) return json({ error: 'The submitted answer data is invalid.' }, 400);
   const link = await rowForToken(env, data.token);
-  if (!link || await deleteIfStale(env, link)) return json({ error: '链接已失效。' }, 404);
+  if (!link || await deleteIfStale(env, link)) return json({ error: 'This link is no longer valid.' }, 404);
   if (link.status === 'completed') return json({ ok: true, locked: true });
   const result = { outerColor: data.state.outerColor || null, innerColor: data.state.innerColor || null, resultKey: data.state.resultKey || null };
   const completed = Boolean(result.resultKey);
@@ -35,28 +35,24 @@ async function save(request, env) {
   return json({ ok: true });
 }
 async function create(request, env, url) {
-  if (!admin(request, env)) return json({ error: '管理员密码不正确。' }, 401);
+  if (!admin(request, env)) return json({ error: 'The administrator password is incorrect.' }, 401);
   const data = await body(request), count = Number(data?.count ?? 1);
-  if (!Number.isInteger(count) || count < 1 || count > 100) return json({ error: '一次只能生成 1–100 条链接。' }, 400);
+  if (!Number.isInteger(count) || count < 1 || count > 100) return json({ error: 'You can generate from 1 to 100 links at a time.' }, 400);
   const links = [];
   for (let i = 0; i < count; i += 1) { const token = random(), id = crypto.randomUUID(), label = count === 1 ? String(data?.customerLabel || '').slice(0, 200) : ''; await env.DB.prepare('INSERT INTO issued_links (id, token_hash, customer_label) VALUES (?, ?, ?)').bind(id, await hash(token), label || null).run(); links.push({ id, url: `${url.origin}/?token=${token}` }); }
   return json({ links }, 201);
 }
 async function serve(request, env, url) {
-  // Keep the public root URL working even though the quiz page has a descriptive filename.
+  // Keep the public root URL working while the example page uses a descriptive filename.
   const assetRequest = url.pathname === '/'
     ? new Request(new URL('/question-example.html', url), request)
     : request;
   const response = await env.ASSETS.fetch(assetRequest);
-  if (url.pathname !== '/' || !response.headers.get('content-type')?.includes('text/html')) return response;
-  const html = (await response.text())
-    .replace('<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">', '<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">\n    <script src="access-gate.js"></script>')
-    .replace("const STORAGE_KEY = 'personalityColorTest_result';", "const STORAGE_KEY = `personalityColorTest_result_${window.__TEST_ACCESS__?.token || 'invalid'}`;")
-    .replace("state.answers.push({ questionIndex: qIndex, optionLetter: letter });\n                }\n\n                //", "state.answers.push({ questionIndex: qIndex, optionLetter: letter });\n                }\n                saveTestResult();\n\n                //")
-    .replace("if (saved && saved.resultKey) {\n                    loadSavedResult(saved);\n                    return;\n                }", "if (saved && saved.resultKey) {\n                    loadSavedResult(saved);\n                    return;\n                }\n                if (saved && saved.answers && saved.answers.length) {\n                    state.answers = saved.answers;\n                    const nextQuestion = [1, 2, 3, 4].find((n) => !state.answers.some((a) => a.questionIndex === n)) || 1;\n                    renderQuestion(nextQuestion);\n                    return;\n                }");
-  const headers = new Headers(response.headers); headers.set('content-type', 'text/html; charset=UTF-8'); headers.set('cache-control', 'no-store'); return new Response(html, { status: response.status, headers });
+  const headers = new Headers(response.headers);
+  headers.set('cache-control', 'no-store');
+  return new Response(response.body, { status: response.status, headers });
 }
 export default {
   async scheduled(_, env) { await env.DB.prepare("DELETE FROM issued_links WHERE expires_at IS NOT NULL AND expires_at <= CURRENT_TIMESTAMP").run(); },
-  async fetch(request, env) { const url = new URL(request.url); try { if (request.method === 'GET' && url.pathname === '/api/session') return session(request, env, url); if (request.method === 'POST' && url.pathname === '/api/save') return save(request, env); if (request.method === 'POST' && url.pathname === '/api/admin/links') return create(request, env, url); if (url.pathname.startsWith('/api/')) return json({ error: '接口不存在。' }, 404); return serve(request, env, url); } catch (error) { console.error(error); return json({ error: '服务暂时不可用，请稍后重试。' }, 500); } },
+  async fetch(request, env) { const url = new URL(request.url); try { if (request.method === 'GET' && url.pathname === '/api/session') return session(request, env, url); if (request.method === 'POST' && url.pathname === '/api/save') return save(request, env); if (request.method === 'POST' && url.pathname === '/api/admin/links') return create(request, env, url); if (url.pathname.startsWith('/api/')) return json({ error: 'The requested API endpoint does not exist.' }, 404); return serve(request, env, url); } catch (error) { console.error(error); return json({ error: 'The service is temporarily unavailable. Please try again later.' }, 500); } },
 };

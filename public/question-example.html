@@ -1,1364 +1,201 @@
-<!DOCTYPE html>
-<html lang="zh-CN">
+<!doctype html>
+<html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>内外人格色差测试 | 你的保护色 vs 真实底色</title>
-    <style>
-        :root {
-            --bg-start: #fdf6f0;
-            --bg-mid: #f9f2eb;
-            --card-bg: #ffffff;
-            --text-primary: #3d302b;
-            --text-secondary: #6b5d55;
-            --text-light: #8c7b72;
-            --shadow-soft: 0 2px 16px rgba(60, 40, 30, 0.07);
-            --shadow-card: 0 4px 24px rgba(60, 40, 30, 0.10);
-            --shadow-elevated: 0 8px 40px rgba(60, 40, 30, 0.14);
-            --radius-sm: 12px;
-            --radius-md: 18px;
-            --radius-lg: 24px;
-            --radius-xl: 32px;
-            --transition-smooth: 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-            --transition-bounce: 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
-            --transition-fast: 0.2s ease;
-
-            /* 外在颜色 */
-            --out-red: #F4845F;
-            --out-red-light: #fde8df;
-            --out-green: #8DB580;
-            --out-green-light: #e8f2e5;
-            --out-blue: #8BADC8;
-            --out-blue-light: #e5eff6;
-            --out-purple: #B8A0C8;
-            --out-purple-light: #f1ebf5;
-
-            /* 内在颜色 */
-            --in-red: #D94040;
-            --in-red-light: #fce8e8;
-            --in-green: #5E7E5E;
-            --in-green-light: #e4efe4;
-            --in-blue: #3D5A80;
-            --in-blue-light: #e3eaf2;
-            --in-purple: #5C3D6E;
-            --in-purple-light: #efe8f3;
-
-            --gold: #c8a87c;
-            --gold-light: #f7efe3;
-            --accent-rose: #e8c5b8;
-        }
-
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Hiragino Sans GB', 'Noto Sans SC', 'Microsoft YaHei', sans-serif;
-            background: linear-gradient(170deg, #fdf6f0 0%, #f9efe6 25%, #faf3ed 50%, #fdf7f2 75%, #fefaf6 100%);
-            background-attachment: fixed;
-            min-height: 100vh;
-            min-height: 100dvh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            padding: 20px 16px;
-            -webkit-tap-highlight-color: transparent;
-            -webkit-font-smoothing: antialiased;
-            user-select: none;
-            -webkit-user-select: none;
-        }
-
-        /* 背景装饰光晕 */
-        body::before {
-            content: '';
-            position: fixed;
-            top: -15%;
-            left: -25%;
-            width: 70%;
-            height: 60%;
-            background: radial-gradient(ellipse at center, rgba(244, 132, 95, 0.06) 0%, transparent 70%);
-            pointer-events: none;
-            z-index: 0;
-            animation: bgGlow1 12s ease-in-out infinite;
-        }
-        body::after {
-            content: '';
-            position: fixed;
-            bottom: -10%;
-            right: -20%;
-            width: 60%;
-            height: 55%;
-            background: radial-gradient(ellipse at center, rgba(141, 181, 128, 0.05) 0%, transparent 70%);
-            pointer-events: none;
-            z-index: 0;
-            animation: bgGlow2 15s ease-in-out infinite;
-        }
-        @keyframes bgGlow1 {
-            0%,
-            100% {
-                transform: translate(0, 0) scale(1);
-            }
-            33% {
-                transform: translate(3%, -2%) scale(1.08);
-            }
-            66% {
-                transform: translate(-2%, 2%) scale(0.94);
-            }
-        }
-        @keyframes bgGlow2 {
-            0%,
-            100% {
-                transform: translate(0, 0) scale(1);
-            }
-            40% {
-                transform: translate(-3%, 3%) scale(1.06);
-            }
-            80% {
-                transform: translate(2%, -1%) scale(0.95);
-            }
-        }
-
-        .app-container {
-            position: relative;
-            z-index: 1;
-            width: 100%;
-            max-width: 420px;
-            min-height: 560px;
-        }
-
-        /* 卡片通用 */
-        .card {
-            background: var(--card-bg);
-            border-radius: var(--radius-lg);
-            padding: 28px 24px;
-            box-shadow: var(--shadow-card);
-            transition: all var(--transition-smooth);
-            position: relative;
-            overflow: hidden;
-        }
-        .card::after {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 3px;
-            background: linear-gradient(90deg, var(--out-red), var(--out-purple), var(--out-blue), var(--out-green));
-            border-radius: 3px 3px 0 0;
-            opacity: 0.55;
-        }
-
-        /* 页面切换动画 */
-        .page {
-            display: none;
-            animation: fadeSlideIn 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
-        }
-        .page.active {
-            display: block;
-        }
-        @keyframes fadeSlideIn {
-            from {
-                opacity: 0;
-                transform: translateY(18px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-        @keyframes fadeSlideOut {
-            from {
-                opacity: 1;
-                transform: translateY(0);
-            }
-            to {
-                opacity: 0;
-                transform: translateY(-14px);
-            }
-        }
-        .page.exiting {
-            animation: fadeSlideOut 0.35s ease forwards;
-        }
-
-        /* ========== 欢迎页 ========== */
-        .welcome-icon {
-            text-align: center;
-            font-size: 56px;
-            margin-bottom: 10px;
-            animation: floatIcon 3s ease-in-out infinite;
-            display: block;
-        }
-        @keyframes floatIcon {
-            0%,
-            100% {
-                transform: translateY(0);
-            }
-            50% {
-                transform: translateY(-12px);
-            }
-        }
-        .welcome-title {
-            font-size: 26px;
-            font-weight: 700;
-            text-align: center;
-            color: var(--text-primary);
-            margin-bottom: 6px;
-            letter-spacing: 0.5px;
-        }
-        .welcome-subtitle {
-            font-size: 14px;
-            text-align: center;
-            color: var(--text-light);
-            margin-bottom: 22px;
-            line-height: 1.5;
-        }
-        .welcome-tagline {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 6px;
-            font-size: 13px;
-            color: var(--text-secondary);
-            background: #fdf8f3;
-            border-radius: 20px;
-            padding: 8px 16px;
-            margin: 0 auto 20px;
-            width: fit-content;
-            letter-spacing: 0.3px;
-        }
-        .welcome-tagline .dot {
-            width: 7px;
-            height: 7px;
-            border-radius: 50%;
-            display: inline-block;
-            animation: dotPulse 1.8s ease-in-out infinite;
-        }
-        .welcome-tagline .dot:nth-child(1) {
-            background: var(--out-red);
-            animation-delay: 0s;
-        }
-        .welcome-tagline .dot:nth-child(3) {
-            background: var(--out-blue);
-            animation-delay: 0.3s;
-        }
-        .welcome-tagline .dot:nth-child(5) {
-            background: var(--out-green);
-            animation-delay: 0.6s;
-        }
-        @keyframes dotPulse {
-            0%,
-            100% {
-                transform: scale(1);
-                opacity: 0.7;
-            }
-            50% {
-                transform: scale(1.7);
-                opacity: 1;
-            }
-        }
-
-        /* ========== 按钮 ========== */
-        .btn {
-            display: block;
-            width: 100%;
-            padding: 15px 20px;
-            font-size: 17px;
-            font-weight: 600;
-            border: none;
-            border-radius: var(--radius-md);
-            cursor: pointer;
-            letter-spacing: 0.5px;
-            transition: all var(--transition-bounce);
-            text-align: center;
-            position: relative;
-            overflow: hidden;
-            -webkit-tap-highlight-color: transparent;
-            outline: none;
-            color: #fff;
-        }
-        .btn:active {
-            transform: scale(0.96);
-            transition: all 0.1s ease;
-        }
-        .btn-primary {
-            background: linear-gradient(135deg, #5C3D6E 0%, #3D5A80 50%, #5E7E5E 100%);
-            background-size: 200% 200%;
-            animation: btnShimmer 4s ease infinite;
-            box-shadow: 0 6px 20px rgba(60, 40, 50, 0.22);
-        }
-        @keyframes btnShimmer {
-            0%,
-            100% {
-                background-position: 0% 50%;
-            }
-            50% {
-                background-position: 100% 50%;
-            }
-        }
-        .btn-secondary {
-            background: #fff;
-            color: var(--text-primary);
-            border: 1.5px solid #e5dcd4;
-            box-shadow: var(--shadow-soft);
-        }
-        .btn-outline {
-            background: transparent;
-            color: var(--text-primary);
-            border: 1.5px solid #d5c8bb;
-            box-shadow: none;
-        }
-        .btn-small {
-            padding: 10px 18px;
-            font-size: 14px;
-            width: auto;
-            display: inline-block;
-            border-radius: 25px;
-        }
-        .btn-gold {
-            background: linear-gradient(135deg, #c8a87c 0%, #d4b896 50%, #bf9d6e 100%);
-            box-shadow: 0 4px 16px rgba(180, 140, 100, 0.35);
-            color: #fff;
-        }
-
-        /* ========== 选项卡片 ========== */
-        .options-list {
-            list-style: none;
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-        }
-        .option-item {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            padding: 14px 16px;
-            border-radius: var(--radius-md);
-            cursor: pointer;
-            border: 2px solid #ece4db;
-            background: #fefdfb;
-            transition: all var(--transition-fast);
-            -webkit-tap-highlight-color: transparent;
-            position: relative;
-        }
-        .option-item:active {
-            transform: scale(0.975);
-            transition: all 0.1s ease;
-        }
-        .option-item:hover {
-            border-color: #d5c8bb;
-            background: #fdf9f5;
-        }
-        .option-item.selected {
-            border-color: #b8a0c8;
-            background: #f9f4fb;
-            box-shadow: 0 0 0 4px rgba(184, 160, 200, 0.12);
-            animation: selectPop 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
-        }
-        @keyframes selectPop {
-            0% {
-                transform: scale(1);
-            }
-            40% {
-                transform: scale(1.03);
-            }
-            100% {
-                transform: scale(1);
-            }
-        }
-        .option-letter {
-            width: 34px;
-            height: 34px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: 700;
-            font-size: 15px;
-            flex-shrink: 0;
-            color: #fff;
-            letter-spacing: 0;
-        }
-        .option-letter.letter-a {
-            background: var(--out-red);
-        }
-        .option-letter.letter-b {
-            background: var(--out-green);
-        }
-        .option-letter.letter-c {
-            background: var(--out-blue);
-        }
-        .option-letter.letter-d {
-            background: var(--out-purple);
-        }
-        .option-text {
-            font-size: 15px;
-            color: var(--text-primary);
-            line-height: 1.4;
-            font-weight: 500;
-        }
-
-        /* ========== 进度条 ========== */
-        .progress-wrap {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            margin-bottom: 18px;
-        }
-        .progress-dot {
-            width: 10px;
-            height: 10px;
-            border-radius: 50%;
-            background: #e5dcd4;
-            transition: all var(--transition-smooth);
-        }
-        .progress-dot.done {
-            background: #b8a0c8;
-            box-shadow: 0 0 8px rgba(184, 160, 200, 0.4);
-        }
-        .progress-dot.current {
-            background: #5C3D6E;
-            box-shadow: 0 0 12px rgba(92, 61, 110, 0.5);
-            transform: scale(1.25);
-            animation: dotCurrentPulse 1.5s ease-in-out infinite;
-        }
-        @keyframes dotCurrentPulse {
-            0%,
-            100% {
-                box-shadow: 0 0 8px rgba(92, 61, 110, 0.4);
-            }
-            50% {
-                box-shadow: 0 0 18px rgba(92, 61, 110, 0.7);
-            }
-        }
-        .progress-line {
-            flex: 1;
-            height: 2px;
-            background: #e5dcd4;
-            border-radius: 1px;
-            transition: all var(--transition-smooth);
-        }
-        .progress-line.done {
-            background: #b8a0c8;
-        }
-        .question-label {
-            font-size: 12px;
-            color: var(--text-light);
-            text-align: center;
-            letter-spacing: 1px;
-            margin-bottom: 8px;
-            text-transform: uppercase;
-        }
-        .question-title {
-            font-size: 20px;
-            font-weight: 700;
-            color: var(--text-primary);
-            text-align: center;
-            margin-bottom: 20px;
-            line-height: 1.4;
-            letter-spacing: 0.3px;
-        }
-
-        /* ========== 过渡页 ========== */
-        .transition-page {
-            text-align: center;
-            padding: 40px 20px;
-        }
-        .transition-emoji {
-            font-size: 64px;
-            animation: floatIcon 2.5s ease-in-out infinite;
-        }
-        .transition-text {
-            font-size: 18px;
-            color: var(--text-secondary);
-            margin-top: 16px;
-            font-weight: 500;
-            letter-spacing: 0.5px;
-        }
-        .transition-dots {
-            display: flex;
-            justify-content: center;
-            gap: 8px;
-            margin-top: 20px;
-        }
-        .transition-dots span {
-            width: 10px;
-            height: 10px;
-            border-radius: 50%;
-            background: #d5c8bb;
-            animation: dotBounce 1.4s ease-in-out infinite;
-        }
-        .transition-dots span:nth-child(1) {
-            animation-delay: 0s;
-        }
-        .transition-dots span:nth-child(2) {
-            animation-delay: 0.2s;
-        }
-        .transition-dots span:nth-child(3) {
-            animation-delay: 0.4s;
-        }
-        @keyframes dotBounce {
-            0%,
-            80%,
-            100% {
-                transform: scale(0.7);
-                opacity: 0.4;
-            }
-            40% {
-                transform: scale(1.3);
-                opacity: 1;
-            }
-        }
-
-        /* ========== 结果页 ========== */
-        .result-color-display {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 16px;
-            margin: 16px 0 20px;
-            flex-wrap: wrap;
-        }
-        .color-circle {
-            width: 80px;
-            height: 80px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            flex-direction: column;
-            box-shadow: 0 8px 28px rgba(0, 0, 0, 0.13);
-            position: relative;
-            animation: popIn 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
-        }
-        .color-circle.outer-circle {
-            animation-delay: 0.1s;
-        }
-        .color-circle.inner-circle {
-            animation-delay: 0.3s;
-        }
-        @keyframes popIn {
-            from {
-                transform: scale(0);
-                opacity: 0;
-            }
-            to {
-                transform: scale(1);
-                opacity: 1;
-            }
-        }
-        .color-circle .color-label {
-            font-size: 10px;
-            color: rgba(255, 255, 255, 0.9);
-            font-weight: 500;
-            letter-spacing: 0.5px;
-        }
-        .color-circle .color-name {
-            font-size: 13px;
-            color: #fff;
-            font-weight: 700;
-            letter-spacing: 0.5px;
-        }
-        .color-vs {
-            font-size: 22px;
-            font-weight: 700;
-            color: var(--text-light);
-            animation: popIn 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
-            animation-delay: 0.5s;
-            opacity: 0;
-            animation-fill-mode: forwards;
-        }
-        .result-title {
-            text-align: center;
-            font-size: 22px;
-            font-weight: 700;
-            color: var(--text-primary);
-            margin-bottom: 4px;
-            letter-spacing: 0.4px;
-        }
-        .result-subtitle {
-            text-align: center;
-            font-size: 14px;
-            color: var(--text-light);
-            margin-bottom: 16px;
-            letter-spacing: 0.3px;
-        }
-        .result-description {
-            font-size: 15px;
-            line-height: 1.7;
-            color: var(--text-secondary);
-            text-align: center;
-            padding: 16px;
-            background: #fdf9f5;
-            border-radius: var(--radius-md);
-            margin-bottom: 16px;
-            letter-spacing: 0.3px;
-        }
-        .result-description .highlight {
-            font-weight: 700;
-            color: var(--text-primary);
-            background: linear-gradient(180deg, transparent 60%, rgba(200, 168, 124, 0.2) 60%);
-            padding: 0 2px;
-        }
-        .result-tags {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 8px;
-            justify-content: center;
-            margin-bottom: 20px;
-        }
-        .result-tag {
-            padding: 6px 14px;
-            border-radius: 20px;
-            font-size: 12px;
-            font-weight: 500;
-            letter-spacing: 0.3px;
-            background: #fdf8f3;
-            color: var(--text-secondary);
-            border: 1px solid #e8ddd3;
-        }
-        .share-hint {
-            text-align: center;
-            font-size: 13px;
-            color: var(--text-light);
-            margin: 12px 0 8px;
-            letter-spacing: 0.3px;
-        }
-        .action-buttons {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-            margin-top: 8px;
-        }
-
-        /* ========== 弹窗 ========== */
-        .modal-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(40, 25, 18, 0.55);
-            z-index: 100;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 20px;
-            animation: overlayIn 0.3s ease;
-        }
-        @keyframes overlayIn {
-            from {
-                opacity: 0;
-            }
-            to {
-                opacity: 1;
-            }
-        }
-        .modal-dialog {
-            background: #fff;
-            border-radius: var(--radius-xl);
-            padding: 28px 22px;
-            width: 100%;
-            max-width: 380px;
-            box-shadow: var(--shadow-elevated);
-            animation: modalPop 0.45s cubic-bezier(0.34, 1.56, 0.64, 1);
-            text-align: center;
-        }
-        @keyframes modalPop {
-            from {
-                transform: scale(0.85) translateY(30px);
-                opacity: 0;
-            }
-            to {
-                transform: scale(1) translateY(0);
-                opacity: 1;
-            }
-        }
-        .modal-input {
-            width: 100%;
-            padding: 14px 16px;
-            font-size: 16px;
-            border: 2px solid #e5dcd4;
-            border-radius: var(--radius-md);
-            text-align: center;
-            letter-spacing: 2px;
-            font-weight: 600;
-            transition: all var(--transition-fast);
-            outline: none;
-            background: #fefdfb;
-            color: var(--text-primary);
-        }
-        .modal-input:focus {
-            border-color: #b8a0c8;
-            box-shadow: 0 0 0 4px rgba(184, 160, 200, 0.1);
-        }
-        .modal-hint {
-            font-size: 12px;
-            color: var(--text-light);
-            margin-top: 8px;
-            letter-spacing: 0.3px;
-        }
-        .toast {
-            position: fixed;
-            top: 30px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: #3d302b;
-            color: #fff;
-            padding: 12px 24px;
-            border-radius: 25px;
-            font-size: 14px;
-            font-weight: 500;
-            z-index: 200;
-            letter-spacing: 0.5px;
-            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.25);
-            animation: toastIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1), toastOut 0.35s ease 2s forwards;
-            pointer-events: none;
-        }
-        @keyframes toastIn {
-            from {
-                opacity: 0;
-                transform: translateX(-50%) translateY(-20px);
-            }
-            to {
-                opacity: 1;
-                transform: translateX(-50%) translateY(0);
-            }
-        }
-        @keyframes toastOut {
-            from {
-                opacity: 1;
-            }
-            to {
-                opacity: 0;
-                transform: translateX(-50%) translateY(-14px);
-            }
-        }
-
-        /* 深度报告内容 */
-        .deep-report {
-            text-align: left;
-            font-size: 14px;
-            line-height: 1.8;
-            color: var(--text-secondary);
-            letter-spacing: 0.3px;
-            max-height: 50vh;
-            overflow-y: auto;
-            padding-right: 4px;
-        }
-        .deep-report h3 {
-            font-size: 16px;
-            color: var(--text-primary);
-            margin: 12px 0 6px;
-            letter-spacing: 0.5px;
-        }
-        .deep-report .emoji-bullet {
-            display: inline-block;
-            margin-right: 4px;
-        }
-
-        /* 响应式 */
-        @media (max-width: 380px) {
-            .card {
-                padding: 22px 16px;
-                border-radius: var(--radius-md);
-            }
-            .welcome-title {
-                font-size: 22px;
-            }
-            .question-title {
-                font-size: 18px;
-            }
-            .color-circle {
-                width: 66px;
-                height: 66px;
-            }
-            .color-circle .color-name {
-                font-size: 11px;
-            }
-            .result-title {
-                font-size: 19px;
-            }
-            .btn {
-                padding: 13px 16px;
-                font-size: 15px;
-            }
-            .option-item {
-                padding: 12px 14px;
-                gap: 10px;
-            }
-            .option-text {
-                font-size: 14px;
-            }
-        }
-    </style>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Outer and Inner Color Test</title>
+  <script src="access-gate.js"></script>
+  <style>
+    :root{--ink:#1e293b;--muted:#64748b;--surface:#ffffff;--line:#e2e8f0;--accent:#6366f1;--accent-dark:#4f46e5;--page:#f5f7ff}*{box-sizing:border-box}body{margin:0;min-height:100vh;background:radial-gradient(circle at 15% 0,#e0e7ff 0,transparent 28%),radial-gradient(circle at 90% 95%,#fae8ff 0,transparent 26%),var(--page);color:var(--ink);font:16px/1.6 Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}button{font:inherit}.shell{width:min(720px,calc(100% - 32px));margin:0 auto;padding:42px 0 60px}.card{background:rgba(255,255,255,.94);border:1px solid rgba(226,232,240,.9);border-radius:28px;padding:clamp(26px,5vw,46px);box-shadow:0 18px 54px rgba(30,41,59,.10)}.eyebrow{margin:0 0 10px;color:var(--accent-dark);font-weight:800;letter-spacing:.08em;text-transform:uppercase;font-size:.78rem}.welcome h1{font-size:clamp(2.1rem,7vw,3.55rem);line-height:1.08;margin:0;letter-spacing:-.05em}.lead{margin:20px 0 0;color:var(--muted);font-size:1.05rem}.chips{display:flex;flex-wrap:wrap;gap:9px;margin:26px 0}.chip{padding:7px 11px;border-radius:999px;background:#eef2ff;color:#4338ca;font-size:.86rem;font-weight:700}.primary,.secondary{display:inline-flex;justify-content:center;align-items:center;min-height:50px;padding:12px 20px;border-radius:13px;border:0;font-weight:800;cursor:pointer;transition:transform .18s,background .18s}.primary{background:var(--accent);color:#fff;box-shadow:0 8px 20px rgba(99,102,241,.26)}.primary:hover{background:var(--accent-dark);transform:translateY(-1px)}.secondary{background:#eef2ff;color:#4338ca}.secondary:hover{background:#e0e7ff}.notice{margin:19px 0 0;color:#64748b;font-size:.88rem}.progress-copy{display:flex;justify-content:space-between;gap:20px;color:var(--muted);font-size:.9rem;margin-bottom:11px}.track{height:8px;overflow:hidden;border-radius:99px;background:#e9edf8}.fill{height:100%;border-radius:inherit;background:linear-gradient(90deg,#6366f1,#a855f7);transition:width .25s}.question-label{margin:28px 0 10px;font-size:.85rem;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:#6366f1}.question-title{margin:0;font-size:clamp(1.45rem,5vw,2rem);line-height:1.28;letter-spacing:-.03em}.options{display:grid;gap:12px;margin-top:28px}.option{width:100%;display:flex;align-items:flex-start;gap:14px;padding:17px;border:1px solid var(--line);border-radius:16px;background:#fff;color:var(--ink);text-align:left;cursor:pointer;transition:border .18s,background .18s,transform .18s}.option:hover{border-color:#a5b4fc;background:#f8faff;transform:translateY(-1px)}.option.selected{border-color:#6366f1;background:#eef2ff}.letter{display:grid;place-items:center;flex:0 0 30px;height:30px;border-radius:50%;background:#f1f5f9;color:#475569;font-size:.84rem;font-weight:900}.selected .letter{background:#6366f1;color:#fff}.transition{text-align:center;padding:40px 0}.spinner{width:52px;height:52px;margin:0 auto 20px;border:5px solid #e0e7ff;border-top-color:#6366f1;border-radius:50%;animation:spin .85s linear infinite}@keyframes spin{to{transform:rotate(360deg)}}.result-title{margin:0;font-size:clamp(2rem,7vw,3.3rem);line-height:1.08;letter-spacing:-.05em}.result-subtitle{margin:15px 0 0;color:var(--muted);font-size:1.05rem}.swatches{display:grid;grid-template-columns:1fr 1fr;gap:13px;margin:28px 0}.swatch{padding:16px;border-radius:17px;color:#172033}.swatch small{display:block;opacity:.72;font-weight:800;letter-spacing:.07em;text-transform:uppercase}.swatch strong{display:block;margin-top:4px;font-size:1.12rem}.summary{margin:0;color:#334155}.tags{display:flex;flex-wrap:wrap;gap:9px;margin:22px 0}.tags span{padding:7px 10px;border:1px solid #dbe3f0;border-radius:999px;color:#475569;font-size:.85rem;font-weight:700}.report{margin-top:29px;padding-top:28px;border-top:1px solid var(--line)}.report h2{margin:0 0 10px;font-size:1.35rem}.report h3{margin:21px 0 7px;font-size:1rem}.report p{margin:0;color:#475569}.report strong{color:#1e293b}.restart-note{margin-top:26px;padding:13px 15px;border-radius:12px;background:#f8fafc;color:#64748b;font-size:.9rem}.hidden{display:none}@media(max-width:520px){.shell{width:min(100% - 24px,720px);padding-top:20px}.card{border-radius:22px;padding:25px 20px}.swatches{grid-template-columns:1fr}.option{padding:14px}.question-title{font-size:1.4rem}}
+  </style>
 </head>
 <body>
+  <main id="app" class="shell" aria-live="polite"></main>
+  <script>
+    // Test data and presentation settings.
+    const OUTER_COLORS = {
+      A: { name: 'Sun Orange', short: 'Bright and Energetic', hex: '#f8c9af', text: '#733721', description: 'You tend to appear open, active, and ready to bring energy into a room.' },
+      B: { name: 'Meadow Green', short: 'Calm and Supportive', hex: '#cfe7c6', text: '#285337', description: 'You tend to appear steady, considerate, and easy to approach.' },
+      C: { name: 'Mist Blue', short: 'Thoughtful and Clear', hex: '#cae0f3', text: '#244d71', description: 'You tend to appear observant, composed, and quietly analytical.' },
+      D: { name: 'Violet Haze', short: 'Distinct and Private', hex: '#dfd1ef', text: '#513169', description: 'You tend to appear independent, original, and a little hard to read.' }
+    };
 
-    <div class="app-container" id="app">
-        <!-- 页面容器由JS动态渲染 -->
-    </div>
+    const INNER_COLORS = {
+      A: { name: 'Crimson', short: 'Driven and Adventurous', hex: '#f7c8c8', text: '#772c35', description: 'At your core, you are moved by momentum, expression, and the courage to act.' },
+      B: { name: 'Moss Green', short: 'Gentle and Grounded', hex: '#cce4cc', text: '#2c5a3c', description: 'At your core, you value calm connection, trust, and a sense of safety.' },
+      C: { name: 'Deep Sea Blue', short: 'Reflective and Insightful', hex: '#cad9ea', text: '#294867', description: 'At your core, you need room for reflection, depth, and meaningful ideas.' },
+      D: { name: 'Night Violet', short: 'Imaginative and Free', hex: '#ded0ea', text: '#513567', description: 'At your core, you are drawn to creativity, possibility, and personal freedom.' }
+    };
 
-    <!-- Toast容器 -->
-    <div id="toast-container"></div>
+    const QUESTIONS = [
+      {
+        label: 'Outer Color',
+        title: 'At a gathering or in a new environment, what first impression do you most often give?',
+        options: {
+          A: 'I energize the room and connect easily with people.',
+          B: 'I seem gentle, quiet, and attentive to other people’s feelings.',
+          C: 'I may speak less, but I tend to observe carefully and share clear opinions.',
+          D: 'I seem a little distant or mysterious, which makes people curious.'
+        }
+      },
+      {
+        label: 'Outer Color',
+        title: 'What kind of content do you most often share or explore online?',
+        options: {
+          A: 'Lively moments, humor, events, and what is happening now.',
+          B: 'Small comforts, nature, food, and calming stories.',
+          C: 'Books, films, analysis, practical knowledge, and thoughtful discussions.',
+          D: 'Art, niche aesthetics, moody photography, and unusual ideas.'
+        }
+      },
+      {
+        label: 'Inner Color',
+        title: 'When you are alone and nothing is expected of you, what state feels most familiar?',
+        options: {
+          A: 'I want connection, activity, or a new experience to look forward to.',
+          B: 'I feel peaceful and soft, and I enjoy a slower natural rhythm.',
+          C: 'My thoughts keep moving; I reflect, analyze, and have long inner conversations.',
+          D: 'I imagine other worlds, follow inspiration, or want to escape the ordinary for a while.'
+        }
+      },
+      {
+        label: 'Inner Color',
+        title: 'If you set aside every social role, what kind of person do you most want to become?',
+        options: {
+          A: 'A vivid adventurer who acts wholeheartedly and is not afraid of getting hurt.',
+          B: 'A quietly growing person with a stable and gentle inner life.',
+          C: 'A clear-minded observer with insight, depth, and mental freedom.',
+          D: 'A free traveler who experiences many possible lives and resists easy labels.'
+        }
+      }
+    ];
 
-    <!-- 弹窗容器 -->
-    <div id="modal-container"></div>
+    const STORAGE_KEY = `onlineTestingResult_${window.__TEST_ACCESS__?.token || 'invalid'}`;
+    const app = document.getElementById('app');
+    const state = { answers: [], outerColor: null, innerColor: null, resultKey: null, timestamp: null };
 
-    <script>
-        (function() {
-            // ==================== 数据定义 ====================
+    function escapeHtml(value) {
+      return String(value).replace(/[&<>'"]/g, character => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' })[character]);
+    }
 
-            // 颜色映射
-            const OUTER_COLORS = {
-                'A': { name: '日光橙', hex: '#F4845F', hexLight: '#fde8df', emoji: '☀️', label: '外在色' },
-                'B': { name: '浅草绿', hex: '#8DB580', hexLight: '#e8f2e5', emoji: '🌿', label: '外在色' },
-                'C': { name: '雾霾蓝', hex: '#8BADC8', hexLight: '#e5eff6', emoji: '🌫️', label: '外在色' },
-                'D': { name: '薄藤紫', hex: '#B8A0C8', hexLight: '#f1ebf5', emoji: '🪻', label: '外在色' }
-            };
+    function loadStoredState() {
+      try {
+        const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || 'null');
+        if (saved && Array.isArray(saved.answers)) Object.assign(state, saved);
+      } catch (error) {
+        console.warn('Unable to read the saved test state.', error);
+      }
+    }
 
-            const INNER_COLORS = {
-                'A': { name: '朱红', hex: '#D94040', hexLight: '#fce8e8', emoji: '🔥', label: '内在色' },
-                'B': { name: '苔藓绿', hex: '#5E7E5E', hexLight: '#e4efe4', emoji: '🍃', label: '内在色' },
-                'C': { name: '深海蓝', hex: '#3D5A80', hexLight: '#e3eaf2', emoji: '🌊', label: '内在色' },
-                'D': { name: '暗夜紫', hex: '#5C3D6E', hexLight: '#efe8f3', emoji: '🌙', label: '内在色' }
-            };
+    function saveState() {
+      state.timestamp = Date.now();
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    }
 
-            // 16种组合结果数据 [外在key, 内在key]
-            const RESULT_DATA = {
-                'A_A': {
-                    title: '表里如一的野火',
-                    subtitle: '外在日光橙 · 内在朱红',
-                    desc: '你就是行走的生命力。内外都充满能量与行动力，敢爱敢恨，痛快淋漓。你不隐藏，也不伪装。<span class="highlight">你的存在本身就是在告诉世界：活出本色，就是最强大的力量。</span>你像一团永不熄灭的火，走到哪里都自带光芒。',
-                    tags: ['热烈鲜活', '表里如一', '感染力强', '行动派'],
-                    deepTitle: '🔥 野火型人格深度报告',
-                    deepContent: `<h3>🧡 你的核心特质</h3><p>你是极少数真正做到"内外一致"的人。你的情绪、想法和行动高度统一，这让你在人群中显得格外真诚和有力量。你不需要戴着面具生活，也因此吸引了许多渴望真实的人。</p><h3>⚡ 优势与盲点</h3><p><b>优势：</b>行动力极强，感染力出众，是天生的领导者和气氛制造者。你敢于表达，也敢于承担。<br><b>盲点：</b>有时过于直接，可能忽略他人细腻的感受。热情来得快去得也快，需要学会在关系中保持持久的温度。</p><h3>🌱 成长建议</h3><p>学会在烈火中留一丝清凉——偶尔慢下来，倾听那些与你不同频的声音。你的热烈是礼物，但温柔同样可以成为你的力量。</p>`
-                },
-                'A_B': {
-                    title: '外热内柔的守护者',
-                    subtitle: '外在日光橙 · 内在苔藓绿',
-                    desc: '你看起来像一团火，热情开朗，总能活跃气氛。但你的内心其实是一片温柔的绿洲，渴望平静与安稳。<span class="highlight">你用热闹保护着内心的柔软，怕被看穿后无人珍惜你的慢热与深情。</span>你是那种在聚会上笑得最大声，回家后却最需要独处充电的人。',
-                    tags: ['外热内柔', '守护型', '反差魅力', '深情慢热'],
-                    deepTitle: '🧡💚 守护者型人格深度报告',
-                    deepContent: `<h3>🎭 你的双重面貌</h3><p>你的外在是社交场上的太阳，但内在却向往着苔藓般安静生长的节奏。这种反差不是虚伪，而是你适应世界的智慧——你知道如何融入，但也清楚自己真正需要什么。</p><h3>⚡ 优势与盲点</h3><p><b>优势：</b>社交能力强，同时内心细腻，能察觉他人的情绪波动。你是朋友眼中的"暖心担当"。<br><b>盲点：</b>容易在热闹中耗尽能量却不自知，偶尔会因为过度付出而感到疲惫和委屈。</p><h3>🌱 成长建议</h3><p>学会在社交后给自己留出"绿色时间"——泡一杯茶、散一段步，让内在的苔藓绿得到滋养。你不必永远燃烧，安静也是一种力量。</p>`
-                },
-                'A_C': {
-                    title: '外热内冷的孤独太阳',
-                    subtitle: '外在日光橙 · 内在深海蓝',
-                    desc: '你看起来像一团火，走到哪里都能点燃气氛。所有人都觉得你没心没肺、永远快乐。但只有你知道，热闹散场后，你比谁都容易感到抽离。<span class="highlight">你的内心是一片深蓝的海，藏着许多没说出口的疲惫和思考。你擅长治愈别人，却很少有人看见你也需要被接住。</span>',
-                    tags: ['外热内冷', '深夜emo', '治愈他人', '内心深邃'],
-                    deepTitle: '🧡💙 孤独太阳型人格深度报告',
-                    deepContent: `<h3>🌓 你的矛盾之美</h3><p>你是最典型的"外向孤独者"。白天你在人群中发光，夜晚你在自己的深海里沉默。这种矛盾不是缺陷，而是你独特的深度——你既能连接世界，也能连接自己。</p><h3>⚡ 优势与盲点</h3><p><b>优势：</b>共情力极强，能敏锐感知他人情绪，是天生的倾听者和治愈者。你的思考深度远超表面所见。<br><b>盲点：</b>容易陷入"给予过多、接收太少"的失衡。你的疲惫常常被自己的笑容掩盖。</p><h3>🌱 成长建议</h3><p>允许自己偶尔不快乐。找一个能接住你深海的人，哪怕只有一个。你的脆弱不需要隐藏，它和你一样值得被看见。</p>`
-                },
-                'A_D': {
-                    title: '热烈外表下的梦幻者',
-                    subtitle: '外在日光橙 · 内在暗夜紫',
-                    desc: '你热情洋溢的外表下，藏着一个充满幻想与灵感的内心世界。白天你是人群中的光，夜晚你是自己梦境里的旅人。<span class="highlight">你用热闹掩饰着内心的敏感与丰富，怕被人说"想太多"，但那些天马行空的念头正是你最珍贵的部分。</span>',
-                    tags: ['外热内幻', '灵感丰富', '敏感细腻', '双重魅力'],
-                    deepTitle: '🧡💜 梦幻者型人格深度报告',
-                    deepContent: `<h3>✨ 你的独特魅力</h3><p>你拥有极罕见的"双频"能力——既能在外在世界游刃有余，又能在内在世界自由翱翔。你的灵感常常在热闹中迸发，在独处时沉淀。</p><h3>⚡ 优势与盲点</h3><p><b>优势：</b>创造力出众，善于在平凡中发现不凡。你的想象力是你的超能力。<br><b>盲点：</b>有时会觉得自己"不属于任何地方"，在热闹与孤独之间摇摆不定。</p><h3>🌱 成长建议</h3><p>拥抱你的双面性。你可以同时是太阳和月亮——不必选择其一。找到能欣赏你全部的人，你会发现自己比想象中更完整。</p>`
-                },
-                'B_A': {
-                    title: '温柔外壳下的烈焰',
-                    subtitle: '外在浅草绿 · 内在朱红',
-                    desc: '你看起来温和安静，总是照顾他人感受。但你的内心却燃烧着一团烈火——有强烈的热情和坚定的原则。<span class="highlight">你只是选择了温柔的方式来表达力量。别被你的外表骗了，你骨子里比谁都勇敢。</span>',
-                    tags: ['外柔内刚', '温柔力量', '隐藏热情', '原则坚定'],
-                    deepTitle: '💚🧡 温柔烈焰型人格深度报告',
-                    deepContent: `<h3>🌋 你的隐藏力量</h3><p>你是那种"看起来好说话，但关键时刻比谁都坚定"的人。你的温柔不是软弱，而是一种选择——你选择用温和的方式去影响世界，但内心的火焰从未熄灭。</p><h3>⚡ 优势与盲点</h3><p><b>优势：</b>亲和力与原则性兼备，能在不伤害关系的前提下坚持自我。<br><b>盲点：</b>有时过于内敛，导致你的热情和才华被低估。需要学会适时展现内心的火焰。</p><h3>🌱 成长建议</h3><p>偶尔让你的火焰被看见。你的热烈不需要永远藏在温和之下——适时绽放，世界会为你让路。</p>`
-                },
-                'B_B': {
-                    title: '表里如一的宁静绿洲',
-                    subtitle: '外在浅草绿 · 内在苔藓绿',
-                    desc: '你就是平静本身。内外都散发着温和、稳定与治愈的气息。你不争不抢，却总有人被你吸引。<span class="highlight">你像一棵树，安静地生长，给周围带来荫凉。在这个喧嚣的世界里，你的存在就是一种安慰。</span>',
-                    tags: ['内外一致', '治愈系', '稳定温和', '宁静力量'],
-                    deepTitle: '💚💚 宁静绿洲型人格深度报告',
-                    deepContent: `<h3>🍃 你的治愈力量</h3><p>你是人群中的"定心丸"。你的内外一致让你拥有罕见的稳定感，在混乱中你能保持清醒，在冲突中你能保持温和。这种力量看似柔软，实则坚韧。</p><h3>⚡ 优势与盲点</h3><p><b>优势：</b>情绪稳定，善于倾听和抚慰他人。你是最好的朋友、最可靠的伙伴。<br><b>盲点：</b>有时过于低调，可能错过展示自己的机会。你的安静有时会被误解为缺乏主见。</p><h3>🌱 成长建议</h3><p>你的宁静是稀缺资源。在保持温和的同时，也要记得主动表达你的想法——你的声音值得被听到。</p>`
-                },
-                'B_C': {
-                    title: '温和表面下的深邃思考者',
-                    subtitle: '外在浅草绿 · 内在深海蓝',
-                    desc: '你总是温和地对待每个人，轻声细语，从不让人难堪。但你的内心却是一片深蓝的海洋——充满深度思考与理性分析。<span class="highlight">你看起来随和，其实内心有自己的哲学体系。你的温和是修养，你的深邃是天赋。</span>',
-                    tags: ['外温内深', '思考者', '修养深厚', '理性温柔'],
-                    deepTitle: '💚💙 深邃思考型人格深度报告',
-                    deepContent: `<h3>🧠 你的思维魅力</h3><p>你是那种"看起来好相处，聊起来有深度"的人。你的温和让所有人都愿意接近你，而你的深邃让真正了解你的人深深着迷。你拥有双重魅力。</p><h3>⚡ 优势与盲点</h3><p><b>优势：</b>兼具亲和力与思考深度，能在感性与理性之间自如切换。<br><b>盲点：</b>有时会因为过度思考而陷入内耗，对外表现得温和但内心可能波涛汹涌。</p><h3>🌱 成长建议</h3><p>找一个能与你进行深度对话的人。你的思想需要出口，你的深海需要被探索。不要把所有情绪都留给自己。</p>`
-                },
-                'B_D': {
-                    title: '温柔外壳下的叛逆灵魂',
-                    subtitle: '外在浅草绿 · 内在暗夜紫',
-                    desc: '你总是照顾所有人的感受，说话轻声细语，从不让人难堪。但你的内心世界异常丰富且叛逆，充满天马行空的幻想。<span class="highlight">你看起来很好说话，其实骨子里比谁都坚持自我，只是选择了温柔的方式。</span>你的灵魂是暗夜里的紫，神秘而自由。',
-                    tags: ['外柔内叛', '温柔叛逆', '幻想丰富', '坚持自我'],
-                    deepTitle: '💚💜 温柔叛逆型人格深度报告',
-                    deepContent: `<h3>🎨 你的隐秘世界</h3><p>你是最令人惊喜的存在——外表温和如春风，内心却住着一个不羁的艺术家。你的温柔是给世界的礼物，而你的叛逆是给自己的自由。这种反差让你充满魅力。</p><h3>⚡ 优势与盲点</h3><p><b>优势：</b>创造力与同理心兼备，既能理解他人，又不会被他人定义。<br><b>盲点：</b>有时会感到"没人真正懂我"，因为你的内在世界太过独特。</p><h3>🌱 成长建议</h3><p>勇敢地展示你的暗夜紫。那些天马行空的念头不是"想太多"，而是你最珍贵的创造力源泉。找到欣赏它们的人。</p>`
-                },
-                'C_A': {
-                    title: '外冷内热的闷烧壶',
-                    subtitle: '外在雾霾蓝 · 内在朱红',
-                    desc: '第一眼见你，觉得清冷理性，有距离感。可一旦你认定一个人，就会掏出全部的热忱与柔软。<span class="highlight">你只是慢热，不是冷漠。你的心里其实住着一个渴望拥抱的孩子，只是习惯先观察这个世界。</span>',
-                    tags: ['外冷内热', '慢热星人', '深情专注', '理性外壳'],
-                    deepTitle: '💙🧡 闷烧壶型人格深度报告',
-                    deepContent: `<h3>🔥 你的慢热之美</h3><p>你是那种"第一眼高冷，熟了之后是话痨"的人。你的理性是保护壳，但壳内是滚烫的岩浆。能走进你内心的人，会得到这世上最真挚的热情。</p><h3>⚡ 优势与盲点</h3><p><b>优势：</b>理性与感性兼备，对人际关系有筛选机制，一旦投入便极为专注。<br><b>盲点：</b>可能因为慢热而错过一些美好的连接。你的"冷"有时会吓退那些本可以走近的人。</p><h3>🌱 成长建议</h3><p>试着在安全的环境中早一点展示你的温度。不是所有人都值得你的热忱，但有些人值得你早一点打开门。</p>`
-                },
-                'C_B': {
-                    title: '理性外表下的温柔心',
-                    subtitle: '外在雾霾蓝 · 内在苔藓绿',
-                    desc: '你看起来冷静理性，做事有条不紊。但你的内心却向往简单安稳的生活，渴望那种一屋两人、三餐四季的平静。<span class="highlight">你的理性是工具，你的温柔是本质。你只是用冷静保护着那颗渴望安宁的心。</span>',
-                    tags: ['外理内柔', '向往安稳', '冷静温柔', '理性守护'],
-                    deepTitle: '💙💚 理性温柔型人格深度报告',
-                    deepContent: `<h3>🏡 你的内心向往</h3><p>你拥有"理性的头脑，温柔的心"。你在工作中可能雷厉风行，但内心最渴望的不过是一段安稳的关系、一个温暖的家。这种反差让你显得格外可靠。</p><h3>⚡ 优势与盲点</h3><p><b>优势：</b>做事靠谱，同时内心柔软，是理想的生活伴侣和工作伙伴。<br><b>盲点：</b>有时过于克制情感表达，导致身边人误以为你不需要温暖。</p><h3>🌱 成长建议</h3><p>偶尔放下理性，让内心的苔藓绿显露出来。告诉你在乎的人你真正渴望什么——他们可能也在等你开口。</p>`
-                },
-                'C_C': {
-                    title: '彻底的精神孤岛',
-                    subtitle: '外在雾霾蓝 · 内在深海蓝',
-                    desc: '你习惯用理性构筑世界，外在冷静，内在深刻。不轻易让人走进，但拥有极为丰富的思想宇宙。<span class="highlight">你享受独处，不是因为孤僻，而是因为你的精神世界足够丰饶。你是一座孤岛，但岛上有整个宇宙。</span>',
-                    tags: ['内外一致', '精神丰富', '独立深刻', '思想者'],
-                    deepTitle: '💙💙 精神孤岛型人格深度报告',
-                    deepContent: `<h3>🏝️ 你的内在宇宙</h3><p>你是那种"一个人也能活得很好"的人。你的内外一致让你无需向外界索取太多能量，你的思想世界足够丰富。你不是不合群，而是选择性地与世界连接。</p><h3>⚡ 优势与盲点</h3><p><b>优势：</b>独立思考能力极强，不随波逐流。你的深度让人尊敬。<br><b>盲点：</b>有时过于孤立，可能错过人际连接带来的温暖和机遇。</p><h3>🌱 成长建议</h3><p>孤岛也可以有桥梁。偶尔让一些人登上你的岛，你会发现分享你的宇宙同样美好。连接不会削弱你的独立。</p>`
-                },
-                'C_D': {
-                    title: '冷静表面下的幻想家',
-                    subtitle: '外在雾霾蓝 · 内在暗夜紫',
-                    desc: '你看上去理性冷静，像一个旁观者。但你的内心却充满了梦幻般的灵感与艺术气质。<span class="highlight">你的理性是表层的秩序，你的内在是自由的星空。你用冷静保护着那片属于你自己的梦幻之地。</span>',
-                    tags: ['外冷内幻', '艺术灵魂', '理性与浪漫', '独特视角'],
-                    deepTitle: '💙💜 冷静幻想家型人格深度报告',
-                    deepContent: `<h3>🎭 你的双面天赋</h3><p>你拥有罕见的"理性+浪漫"组合。你能用逻辑分析世界，也能用幻想重塑世界。这种能力让你在创意领域极具潜力——你的冷静让你的幻想更有结构。</p><h3>⚡ 优势与盲点</h3><p><b>优势：</b>创意与执行力兼备，是难得的"能想也能做"的人。<br><b>盲点：</b>有时会在理性与感性之间拉扯，不确定该用哪一面面对世界。</p><h3>🌱 成长建议</h3><p>两面都是你。不需要二选一。用理性去实现你的幻想，用幻想去丰富你的理性——这就是你最独特的路径。</p>`
-                },
-                'D_A': {
-                    title: '神秘外表下的热烈灵魂',
-                    subtitle: '外在薄藤紫 · 内在朱红',
-                    desc: '你给人一种神秘、不好接近的印象。可实际上，你的内心充满了热情与渴望，向往深刻的连接与炽热的体验。<span class="highlight">你的疏离只是保护色，一旦有人走进，就会发现你比谁都热烈。</span>',
-                    tags: ['外冷内热', '神秘热情', '保护色', '渴望连接'],
-                    deepTitle: '💜🧡 神秘热烈型人格深度报告',
-                    deepContent: `<h3>🔮 你的吸引力</h3><p>你拥有一种"让人好奇"的魔力。你的神秘感吸引人靠近，而你的热烈让人一旦靠近就不想离开。你是那种越了解越觉得丰富的人。</p><h3>⚡ 优势与盲点</h3><p><b>优势：</b>独特的气质让你在人群中脱颖而出，内在的热情让你拥有深度的连接能力。<br><b>盲点：</b>你的神秘可能让人误以为你不需要他人，从而不敢主动靠近。</p><h3>🌱 成长建议</h3><p>偶尔主动释放一些信号。你的热情不需要永远藏在神秘之后——给那些值得的人一个入口，他们会发现宝藏。</p>`
-                },
-                'D_B': {
-                    title: '生人勿近下的柔软内核',
-                    subtitle: '外在薄藤紫 · 内在苔藓绿',
-                    desc: '你给人一种神秘、不好惹的印象，仿佛不需要任何人。可实际上，你内心无比渴望简单安稳的关系，向往那种一屋两人、三餐四季的平静生活。<span class="highlight">你的疏离只是保护色，怕被看穿后无人珍惜你的慢热与深情。</span>',
-                    tags: ['外冷内柔', '渴望安稳', '保护色深', '深情慢热'],
-                    deepTitle: '💜💚 柔软内核型人格深度报告',
-                    deepContent: `<h3>🛡️ 你的保护机制</h3><p>你用神秘感筑起围墙，但墙内是一个柔软的花园。你不是不需要人，而是太清楚自己需要什么样的人——那些愿意慢慢敲门的人，才值得进入你的世界。</p><h3>⚡ 优势与盲点</h3><p><b>优势：</b>对人际关系有天然的筛选能力，能识别真正值得的人。<br><b>盲点：</b>围墙太高，有时连对的人也进不来。你的保护可能变成孤立。</p><h3>🌱 成长建议</h3><p>试着在围墙上开一扇窗。不需要推倒整面墙，只需要让一些人看到里面的风景。真正值得的人会耐心地找到门。</p>`
-                },
-                'D_C': {
-                    title: '神秘面纱下的深邃灵魂',
-                    subtitle: '外在薄藤紫 · 内在深海蓝',
-                    desc: '你散发着神秘的气质，让人好奇却不敢轻易靠近。而你的内心是一片深蓝——充满深度思考与精神探索。<span class="highlight">你的神秘不是空洞的，而是因为你的内在太过丰富，无法用简单的方式呈现。</span>',
-                    tags: ['神秘深邃', '精神探索', '丰富内在', '独特气质'],
-                    deepTitle: '💜💙 深邃神秘型人格深度报告',
-                    deepContent: `<h3>🌌 你的精神世界</h3><p>你是那种"越探索越觉得深不可测"的人。你的神秘感来自于你内在的丰富——你有太多层次，每一层都值得细细品味。你不是故意保持距离，而是你的深度自然形成了边界。</p><h3>⚡ 优势与盲点</h3><p><b>优势：</b>拥有极强的洞察力和精神深度，是天然的哲学家和思想者。<br><b>盲点：</b>可能因为太过深邃而难以被理解，偶尔会感到孤独。</p><h3>🌱 成长建议</h3><p>偶尔浮出水面，让阳光照进你的深海。你的深邃不需要永远藏在暗处——分享一部分，你会发现理解你的人比你想象的多。</p>`
-                },
-                'D_D': {
-                    title: '彻底的梦幻旅人',
-                    subtitle: '外在薄藤紫 · 内在暗夜紫',
-                    desc: '你从头到尾都散发着梦幻与神秘的气息。你不属于任何固定的框架，像一阵紫色的风，自由地穿梭在现实与幻想之间。<span class="highlight">你的存在本身就是一种艺术。在这个讲究"实用"的世界里，你提醒着人们：美和想象同样重要。</span>',
-                    tags: ['内外一致', '梦幻自由', '艺术灵魂', '不被定义'],
-                    deepTitle: '💜💜 梦幻旅人型人格深度报告',
-                    deepContent: `<h3>🦋 你的自由本质</h3><p>你是极少数完全拥抱自己独特性的人。你的内外一致不是"简单"，而是"纯粹"——你清楚地知道自己是谁，并且不打算为任何人改变。这种纯粹让你拥有磁石般的魅力。</p><h3>⚡ 优势与盲点</h3><p><b>优势：</b>创造力爆棚，拥有独特的审美和视角。你是潮流的创造者而非跟随者。<br><b>盲点：</b>有时过于沉浸在自己的世界里，可能忽略现实的细节。</p><h3>🌱 成长建议</h3><p>保持你的梦幻，但也偶尔落地。现实世界需要你的美，而你也需要现实的土壤来承载你的梦想。找到那个平衡点。</p>`
-                }
-            };
+    function card(content) {
+      app.innerHTML = `<section class="card">${content}</section>`;
+    }
 
-            // ==================== 状态管理 ====================
-            const state = {
-                currentPage: 'welcome',
-                currentQuestion: 1,
-                answers: [], // [{questionIndex, optionLetter}]
-                outerColor: null,
-                innerColor: null,
-                resultKey: null,
-                deepUnlocked: false,
-            };
+    function renderWelcome() {
+      card(`
+        <div class="welcome">
+          <p class="eyebrow">Four-question reflection</p>
+          <h1>Outer and Inner<br>Color Test</h1>
+          <p class="lead">Explore the difference between how you usually appear and what matters most to you inside.</p>
+          <div class="chips"><span class="chip">4 questions</span><span class="chip">About 1 minute</span><span class="chip">Saved automatically</span></div>
+          <button class="primary" id="start">Start the test</button>
+          <p class="notice">For entertainment and self-reflection only. This is not a psychological diagnosis.</p>
+        </div>
+      `);
+      document.getElementById('start').addEventListener('click', () => renderQuestion(1));
+    }
 
-            // ==================== 设备限制（单设备单次测试） ====================
-            const STORAGE_KEY = 'personalityColorTest_result';
+    function nextUnansweredQuestion() {
+      return QUESTIONS.findIndex((_, index) => !state.answers.some(answer => answer.questionIndex === index + 1)) + 1;
+    }
 
-            function saveTestResult() {
-                const data = {
-                    answers: state.answers,
-                    outerColor: state.outerColor,
-                    innerColor: state.innerColor,
-                    resultKey: state.resultKey,
-                    timestamp: Date.now()
-                };
-                try {
-                    localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
-                } catch(e) {
-                    console.warn('无法保存测试结果到本地存储', e);
-                }
-            }
+    function renderQuestion(questionIndex) {
+      const question = QUESTIONS[questionIndex - 1];
+      const selected = state.answers.find(answer => answer.questionIndex === questionIndex)?.optionLetter;
+      const options = Object.entries(question.options).map(([letter, text]) => `
+        <button class="option ${selected === letter ? 'selected' : ''}" data-letter="${letter}">
+          <span class="letter">${letter}</span><span>${escapeHtml(text)}</span>
+        </button>`).join('');
+      const progress = ((questionIndex - 1) / QUESTIONS.length) * 100;
+      card(`
+        <div class="progress-copy"><span>Question ${questionIndex} of ${QUESTIONS.length}</span><span>${question.label}</span></div>
+        <div class="track"><div class="fill" style="width:${progress}%"></div></div>
+        <p class="question-label">${question.label}</p>
+        <h1 class="question-title">${escapeHtml(question.title)}</h1>
+        <div class="options">${options}</div>
+      `);
+      app.querySelectorAll('.option').forEach(button => button.addEventListener('click', () => answerQuestion(questionIndex, button.dataset.letter)));
+    }
 
-            function getSavedTestResult() {
-                try {
-                    const saved = localStorage.getItem(STORAGE_KEY);
-                    if (saved) {
-                        return JSON.parse(saved);
-                    }
-                } catch(e) {}
-                return null;
-            }
+    function answerQuestion(questionIndex, optionLetter) {
+      const existing = state.answers.findIndex(answer => answer.questionIndex === questionIndex);
+      const answer = { questionIndex, optionLetter };
+      if (existing >= 0) state.answers[existing] = answer;
+      else state.answers.push(answer);
+      state.answers.sort((left, right) => left.questionIndex - right.questionIndex);
+      saveState();
+      const next = nextUnansweredQuestion();
+      if (next) setTimeout(() => renderQuestion(next), 220);
+      else setTimeout(calculateResult, 260);
+    }
 
-            function loadSavedResult(saved) {
-                state.answers = saved.answers || [];
-                state.outerColor = saved.outerColor;
-                state.innerColor = saved.innerColor;
-                state.resultKey = saved.resultKey;
-                state.currentPage = 'result';
-                state.deepUnlocked = false;
-                renderResult();
-            }
+    function calculateResult() {
+      const byQuestion = new Map(state.answers.map(answer => [answer.questionIndex, answer.optionLetter]));
+      state.outerColor = byQuestion.get(1) || byQuestion.get(2) || 'A';
+      state.innerColor = byQuestion.get(3) || byQuestion.get(4) || 'A';
+      state.resultKey = `${state.outerColor}_${state.innerColor}`;
+      saveState();
+      card('<div class="transition"><div class="spinner"></div><h1>Preparing your result…</h1><p class="lead">Looking at your outer and inner color combination.</p></div>');
+      setTimeout(renderResult, 700);
+    }
 
-            // ==================== DOM操作 ====================
-            const appEl = document.getElementById('app');
-            const toastContainer = document.getElementById('toast-container');
-            const modalContainer = document.getElementById('modal-container');
+    function getResult() {
+      const outer = OUTER_COLORS[state.outerColor] || OUTER_COLORS.A;
+      const inner = INNER_COLORS[state.innerColor] || INNER_COLORS.A;
+      return {
+        outer,
+        inner,
+        title: `${outer.short} Outside, ${inner.short} Within`,
+        summary: `Your outward style is ${outer.name}, while your inner preference is ${inner.name}. You may show ${outer.short.toLowerCase()} qualities first, even when your deeper needs are more ${inner.short.toLowerCase()}.`,
+        tags: [outer.short, inner.short, 'Unique balance', 'Self-reflection'],
+        strength: `Your combination can help you connect with others through ${outer.name} while making choices that respect your ${inner.name} core.`,
+        growth: `Give both sides room: let people see your natural outward strengths, and also make time for the conditions that help your inner world feel restored.`
+      };
+    }
 
-            function showToast(message, duration = 2200) {
-                const toast = document.createElement('div');
-                toast.className = 'toast';
-                toast.textContent = message;
-                toastContainer.appendChild(toast);
-                setTimeout(() => {
-                    if (toast.parentNode) toast.parentNode.removeChild(toast);
-                }, duration + 400);
-            }
+    function renderResult() {
+      const result = getResult();
+      card(`
+        <p class="eyebrow">Your saved result</p>
+        <h1 class="result-title">${escapeHtml(result.title)}</h1>
+        <p class="result-subtitle">A reflection on how you show up and what supports you inside.</p>
+        <div class="swatches">
+          <div class="swatch" style="background:${result.outer.hex};color:${result.outer.text}"><small>Outer color</small><strong>${escapeHtml(result.outer.name)}</strong><span>${escapeHtml(result.outer.description)}</span></div>
+          <div class="swatch" style="background:${result.inner.hex};color:${result.inner.text}"><small>Inner color</small><strong>${escapeHtml(result.inner.name)}</strong><span>${escapeHtml(result.inner.description)}</span></div>
+        </div>
+        <p class="summary">${escapeHtml(result.summary)}</p>
+        <div class="tags">${result.tags.map(tag => `<span>${escapeHtml(tag)}</span>`).join('')}</div>
+        <section class="report">
+          <h2>Reflection notes</h2>
+          <h3>Potential strength</h3><p>${escapeHtml(result.strength)}</p>
+          <h3>Growth idea</h3><p>${escapeHtml(result.growth)}</p>
+        </section>
+        <p class="restart-note">This result is locked for this unique link. Opening the link again will show this same saved result.</p>
+      `);
+    }
 
-            function showModal(htmlContent) {
-                modalContainer.innerHTML = `
-                <div class="modal-overlay" id="modal-overlay">
-                  <div class="modal-dialog">
-                    ${htmlContent}
-                  </div>
-                </div>
-              `;
-                const overlay = document.getElementById('modal-overlay');
-                overlay.addEventListener('click', function(e) {
-                    if (e.target === overlay) closeModal();
-                });
-            }
+    // Restore a saved result or continue from the first unanswered question.
+    loadStoredState();
+    if (state.resultKey) renderResult();
+    else if (state.answers.length) renderQuestion(nextUnansweredQuestion() || 1);
+    else renderWelcome();
 
-            function closeModal() {
-                modalContainer.innerHTML = '';
-            }
-
-            function scrollToTop() {
-                window.scrollTo({ top: 0, behavior: 'smooth' });
-                appEl.scrollIntoView({ behavior: 'smooth' });
-            }
-
-            // ==================== 页面渲染 ====================
-            function renderWelcome() {
-                state.currentPage = 'welcome';
-                state.answers = [];
-                state.outerColor = null;
-                state.innerColor = null;
-                state.resultKey = null;
-                state.deepUnlocked = false;
-                state.currentQuestion = 1;
-                closeModal();
-                scrollToTop();
-
-                appEl.innerHTML = `
-                <div class="page active" id="page-welcome">
-                  <div class="card">
-                    <span class="welcome-icon">🎨</span>
-                    <h1 class="welcome-title">内外人格色差测试</h1>
-                    <p class="welcome-subtitle">别人眼中的你 vs 真实的你<br>差了多远？</p>
-                    <div class="welcome-tagline">
-                      <span class="dot"></span> 外在保护色 <span class="dot"></span> 内在真实色 <span class="dot"></span>
-                    </div>
-                    <p style="text-align:center;font-size:13px;color:#8c7b72;margin-bottom:18px;line-height:1.6;">
-                      4道选择题 · 约1分钟完成<br>揭示你独一无二的人格色差
-                    </p>
-                    <button class="btn btn-primary" onclick="startTest()">
-                      ✨ 开始测试
-                    </button>
-                    <p style="text-align:center;font-size:11px;color:#b5a599;margin-top:10px;">
-                      趣味测试 · 仅供参考 · 非心理诊断
-                    </p>
-                  </div>
-                </div>
-              `;
-            }
-
-            function renderQuestion(qIndex) {
-                state.currentPage = 'question';
-                state.currentQuestion = qIndex;
-                closeModal();
-                scrollToTop();
-
-                const questions = getQuestions();
-                const q = questions[qIndex - 1];
-                const totalQ = questions.length;
-
-                // 构建进度条
-                let progressHTML = '';
-                for (let i = 1; i <= totalQ; i++) {
-                    if (i < qIndex) progressHTML +=
-                        `<span class="progress-dot done"></span>${i < totalQ ? '<span class="progress-line done"></span>' : ''}`;
-                    else if (i === qIndex) progressHTML +=
-                        `<span class="progress-dot current"></span>${i < totalQ ? '<span class="progress-line"></span>' : ''}`;
-                    else progressHTML +=
-                        `<span class="progress-dot"></span>${i < totalQ ? '<span class="progress-line"></span>' : ''}`;
-                }
-
-                const letters = ['A', 'B', 'C', 'D'];
-                const letterClasses = ['letter-a', 'letter-b', 'letter-c', 'letter-d'];
-
-                let optionsHTML = q.options.map((opt, idx) => `
-                <li class="option-item" data-letter="${letters[idx]}" onclick="selectOption(${qIndex}, '${letters[idx]}', this)">
-                  <span class="option-letter ${letterClasses[idx]}">${letters[idx]}</span>
-                  <span class="option-text">${opt}</span>
-                </li>
-              `).join('');
-
-                // 检查是否有已选答案
-                const existingAnswer = state.answers.find(a => a.questionIndex === qIndex);
-
-                appEl.innerHTML = `
-                <div class="page active" id="page-question-${qIndex}">
-                  <div class="card">
-                    <div class="progress-wrap">${progressHTML}</div>
-                    <div class="question-label">第 ${qIndex} 题 / 共 ${totalQ} 题 · ${q.label}</div>
-                    <div class="question-title">${q.title}</div>
-                    <ul class="options-list">${optionsHTML}</ul>
-                  </div>
-                </div>
-              `;
-
-                // 如果之前有答案，恢复选中状态
-                if (existingAnswer) {
-                    const optionEl = document.querySelector(`.option-item[data-letter="${existingAnswer.optionLetter}"]`);
-                    if (optionEl) optionEl.classList.add('selected');
-                }
-            }
-
-            function selectOption(qIndex, letter, el) {
-                // 移除同题其他选项的选中状态
-                const allOptions = el.parentElement.querySelectorAll('.option-item');
-                allOptions.forEach(opt => opt.classList.remove('selected'));
-                // 添加选中状态
-                el.classList.add('selected');
-
-                // 保存答案
-                const existingIdx = state.answers.findIndex(a => a.questionIndex === qIndex);
-                if (existingIdx >= 0) {
-                    state.answers[existingIdx].optionLetter = letter;
-                } else {
-                    state.answers.push({ questionIndex: qIndex, optionLetter: letter });
-                }
-
-                // 短暂延迟后跳转
-                setTimeout(() => {
-                    if (qIndex < 4) {
-                        renderQuestion(qIndex + 1);
-                    } else if (qIndex === 4) {
-                        // 所有题目完成，计算并显示结果
-                        calculateResult();
-                        renderTransition();
-                    }
-                }, 280);
-            }
-
-            function renderTransition() {
-                state.currentPage = 'transition';
-                closeModal();
-                scrollToTop();
-
-                appEl.innerHTML = `
-                <div class="page active" id="page-transition">
-                  <div class="card transition-page">
-                    <div class="transition-emoji">🔮</div>
-                    <p class="transition-text">正在解析你的人格色差…</p>
-                    <div class="transition-dots">
-                      <span></span><span></span><span></span>
-                    </div>
-                  </div>
-                </div>
-              `;
-
-                // 1.8秒后显示结果
-                setTimeout(() => {
-                    renderResult();
-                }, 1800);
-            }
-
-            function calculateResult() {
-                // 前2题决定外在颜色（取第一题为主）
-                const outerAnswer = state.answers.find(a => a.questionIndex === 1);
-                const innerAnswer = state.answers.find(a => a.questionIndex === 3);
-
-                state.outerColor = outerAnswer ? outerAnswer.optionLetter : 'A';
-                state.innerColor = innerAnswer ? innerAnswer.optionLetter : 'A';
-                state.resultKey = `${state.outerColor}_${state.innerColor}`;
-
-                // 确保结果存在
-                if (!RESULT_DATA[state.resultKey]) {
-                    state.resultKey = 'A_C'; // 默认回退
-                    state.outerColor = 'A';
-                    state.innerColor = 'C';
-                }
-
-                // 保存测试结果到本地（限制单设备单次测试）
-                saveTestResult();
-            }
-
-            function renderResult() {
-                state.currentPage = 'result';
-                state.deepUnlocked = false;
-                closeModal();
-                scrollToTop();
-
-                const result = RESULT_DATA[state.resultKey];
-                const outerData = OUTER_COLORS[state.outerColor];
-                const innerData = INNER_COLORS[state.innerColor];
-
-                if (!result || !outerData || !innerData) {
-                    // 回退
-                    state.resultKey = 'A_C';
-                    state.outerColor = 'A';
-                    state.innerColor = 'C';
-                    return renderResult();
-                }
-
-                appEl.innerHTML = `
-                <div class="page active" id="page-result">
-                  <div class="card">
-                    <div class="result-color-display">
-                      <div class="color-circle outer-circle" style="background:${outerData.hex};">
-                        <span class="color-label">外在</span>
-                        <span class="color-name">${outerData.name}</span>
-                      </div>
-                      <span class="color-vs">×</span>
-                      <div class="color-circle inner-circle" style="background:${innerData.hex};">
-                        <span class="color-label">内在</span>
-                        <span class="color-name">${innerData.name}</span>
-                      </div>
-                    </div>
-                    <div class="result-title">${result.title}</div>
-                    <div class="result-subtitle">${result.subtitle}</div>
-                    <div class="result-description">${result.desc}</div>
-                    <div class="result-tags">
-                      ${result.tags.map(t => `<span class="result-tag">${t}</span>`).join('')}
-                    </div>
-
-                    <div style="text-align:center;margin-top:10px;padding-top:18px;border-top:1px solid #f0e8e0;">
-                      <p style="font-size:13px;color:#8c7b72;letter-spacing:0.3px;line-height:1.6;">
-                        ✅ 你已完成人格色差测试
-                      </p>
-                    </div>
-                    <p style="text-align:center;font-size:11px;color:#b5a599;margin-top:10px;">
-                      趣味测试 · 仅供参考 · 非心理诊断
-                    </p>
-                  </div>
-                </div>
-              `;
-            }
-
-            function getQuestions() {
-                return [
-                    { // 第1题 - 外在
-                        label: '测外在人格色',
-                        title: '在聚会或新环境中，你最容易给人留下的第一印象是？',
-                        options: [
-                            '活络气氛，自来熟，全场焦点',
-                            '温和安静，习惯照顾他人感受',
-                            '话不多但一开口就很有观点，偏观察者',
-                            '自带疏离感，让人好奇但不敢轻易靠近'
-                        ]
-                    }, { // 第2题 - 外在
-                        label: '测外在人格色',
-                        title: '你在社交媒体上最常发布或浏览的内容偏向？',
-                        options: [
-                            '热闹生活：聚会、搞笑日常、当下热梗',
-                            '微小确幸：风景、美食、治愈系图文',
-                            '深度内容：书影评、逻辑分析、知识干货',
-                            '小众审美：艺术、暗调摄影、意识流表达'
-                        ]
-                    }, { // 第3题 - 内在
-                        label: '测内在人格色',
-                        title: '当你一个人待着，没有任何外界要求时，你内心最常浮现的状态是？',
-                        options: [
-                            '有点空落落的，想找人连接，想去做点什么刺激的事',
-                            '感到平和而柔软，享受这种缓慢的节奏，像被自然拥抱',
-                            '思绪翻涌，不停自我对话或陷入沉思，大脑根本停不下来',
-                            '生出许多梦幻或脱离现实的灵感，想逃离此刻去远方'
-                        ]
-                    }, { // 第4题 - 内在
-                        label: '测内在人格色',
-                        title: '如果剥离所有社会身份，你内心深处最渴望成为的样子是？',
-                        options: [
-                            '热烈鲜活的冒险家，尽情燃烧，不怕受伤',
-                            '植物般安静生长的人，拥有稳定而温柔的内心秩序',
-                            '清醒深邃的洞察者，看懂世界，拥有精神自由',
-                            '自由漂泊的旅人，体验千万种人生，不被定义'
-                        ]
-                    }
-                ];
-            }
-
-            // ==================== 全局函数暴露 ====================
-            window.startTest = function() {
-                // 设备限制：已完成的测试不允许重新开始
-                const saved = getSavedTestResult();
-                if (saved && saved.resultKey) {
-                    loadSavedResult(saved);
-                    return;
-                }
-                state.answers = [];
-                state.outerColor = null;
-                state.innerColor = null;
-                state.resultKey = null;
-                state.deepUnlocked = false;
-                state.currentQuestion = 1;
-                renderQuestion(1);
-            };
-            window.selectOption = selectOption;
-            window.closeModal = closeModal;
-
-            // ==================== 键盘支持 ====================
-            document.addEventListener('keydown', function(e) {
-                if (state.currentPage === 'question') {
-                    const keyMap = { '1': 'A', '2': 'B', '3': 'C', '4': 'D', 'a': 'A', 'b': 'B', 'c': 'C',
-                        'd': 'D' };
-                    const letter = keyMap[e.key];
-                    if (letter) {
-                        const optionEl = document.querySelector(`.option-item[data-letter="${letter}"]`);
-                        if (optionEl && !optionEl.classList.contains('selected')) {
-                            selectOption(state.currentQuestion, letter, optionEl);
-                        }
-                    }
-                }
-                // ESC关闭弹窗
-                if (e.key === 'Escape') {
-                    closeModal();
-                }
-            });
-
-            // ==================== 初始化 ====================
-            // 设备限制：检查是否已完成测试，若已完成则直接显示结果
-            const savedResult = getSavedTestResult();
-            if (savedResult && savedResult.resultKey && RESULT_DATA[savedResult.resultKey]) {
-                loadSavedResult(savedResult);
-            } else {
-                renderWelcome();
-            }
-
-            // 添加shake动画样式
-            const shakeStyle = document.createElement('style');
-            shakeStyle.textContent = `
-              @keyframes shake {
-                0%,100% { transform: translateX(0); }
-                20% { transform: translateX(-6px); }
-                40% { transform: translateX(6px); }
-                60% { transform: translateX(-4px); }
-                80% { transform: translateX(4px); }
-              }
-            `;
-            document.head.appendChild(shakeStyle);
-
-            console.log('🎨 内外人格色差测试已就绪');
-            console.log('🔒 已启用单设备单次测试限制');
-            console.log('📱 适配移动端 | 16种人格组合');
-        })();
-    </script>
+    console.info('Outer and Inner Color Test is ready.');
+  </script>
 </body>
 </html>
