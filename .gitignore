@@ -1,0 +1,14 @@
+# Local secrets and environment files
+.env
+.env.*
+!.env.example
+.dev.vars
+
+# Wrangler and local development files
+.wrangler/
+node_modules/
+
+# Logs and editor files
+*.log
+.DS_Store
+.vscode/

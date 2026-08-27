@@ -1,0 +1,16 @@
+name = "personality-color-test"
+main = "worker.js"
+compatibility_date = "2026-08-01"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "personality-color-test"
+database_id = "REPLACE_WITH_YOUR_D1_DATABASE_ID"
+
+[assets]
+directory = "./public"
+binding = "ASSETS"
+run_worker_first = true
+
+[triggers]
+crons = ["0 * * * *"]
