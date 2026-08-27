@@ -1,4 +1,4 @@
-// I keep each participant's progress and result in sync with the server for five days.
+// Synchronizes each participant's progress and result with the server for five days.
 (() => {
   const token = new URLSearchParams(location.search).get('token');
   const storageKey = `onlineTestingResult_${token || 'invalid'}`;
