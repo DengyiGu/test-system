@@ -43,7 +43,6 @@ async function create(request, env, url) {
   return json({ links }, 201);
 }
 async function serve(request, env, url) {
-  // Keep the public root URL working while the example page uses a descriptive filename.
   const assetRequest = url.pathname === '/'
     ? new Request(new URL('/question-example.html', url), request)
     : request;

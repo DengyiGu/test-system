@@ -1,4 +1,4 @@
-// Synchronize answers and results with the server for five days from first access.
+// I keep each participant's progress and result in sync with the server for five days.
 (() => {
   const token = new URLSearchParams(location.search).get('token');
   const storageKey = `onlineTestingResult_${token || 'invalid'}`;
@@ -17,7 +17,7 @@
           body: JSON.stringify({ token, state: JSON.parse(value) })
         });
       } catch (_) {
-        // Local storage still preserves the latest state if a request cannot be sent.
+        // The next update will try again.
       }
     }
   };

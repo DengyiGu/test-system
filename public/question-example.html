@@ -12,7 +12,7 @@
 <body>
   <main id="app" class="shell" aria-live="polite"></main>
   <script>
-    // Test data and presentation settings.
+    // Colors and questions for this test.
     const OUTER_COLORS = {
       A: { name: 'Sun Orange', short: 'Bright and Energetic', hex: '#f8c9af', text: '#733721', description: 'You tend to appear open, active, and ready to bring energy into a room.' },
       B: { name: 'Meadow Green', short: 'Calm and Supportive', hex: '#cfe7c6', text: '#285337', description: 'You tend to appear steady, considerate, and easy to approach.' },
@@ -189,7 +189,7 @@
       `);
     }
 
-    // Restore a saved result or continue from the first unanswered question.
+    // If the participant returns, continue from the saved progress.
     loadStoredState();
     if (state.resultKey) renderResult();
     else if (state.answers.length) renderQuestion(nextUnansweredQuestion() || 1);
